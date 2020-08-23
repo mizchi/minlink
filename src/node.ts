@@ -4,7 +4,7 @@ import { createExpose, createWrap, Adapter } from "./shared";
 const adapter: Adapter<NodeWorker> = {
   emit(ctx, arg) {
     // TODO: Use valid EventTarget on next Node.js version
-    ctx.postMessage({ type: "message", data: arg });
+    ctx.postMessage({ data: arg });
   },
   listen(ctx, handler) {
     ctx.on("message", handler);
