@@ -101,6 +101,11 @@ TBD
 - playwright browser test
 - Service Worker
 
+## Inspired by ...
+
+- https://github.com/GoogleChromeLabs/comlink
+- https://github.com/developit/web-worker
+
 ## LICENSE
 
 MIT
