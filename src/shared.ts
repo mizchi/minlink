@@ -15,8 +15,11 @@ export type Expose<I extends RemoteImpl> = (impl: I) => RemoteCall<I>;
 export type WorkerApi<Impl extends RemoteImpl> = RemoteCall<Impl>;
 export type Cmd = string | { name: string, transferrable?: Transferrable[] }
 
-type Request = [s: typeof HANDLE_SCOPE, id: number, cmd: Cmd, ...args: Transferrable[]]
-type Response = [s: typeof HANDLE_SCOPE, id: number, error: boolean, result: Transferrable ]
+export const REQUEST_MARK = "m$s";
+export const RESPONSE_MARK = "m$r";
+
+type Request = [mark: typeof REQUEST_MARK, id: number, cmd: Cmd, ...args: Transferrable[]]
+type Response = [mark: typeof RESPONSE_MARK, id: number, error: boolean, result: Transferrable ]
 
 export type Adapter<Ctx = any> = {
   emit(ctx: Ctx, data: Response | Request, transferrable?: Array<Transferrable>): void;
@@ -24,21 +27,19 @@ export type Adapter<Ctx = any> = {
   terminate(ctx: Ctx): Promise<void>;
 };
 
-export const HANDLE_SCOPE = "$m";
 export const createExpose = (adapter: Adapter) => (ctx: any, api: any) => {
   adapter.listen(ctx, (ev: MessageEvent) => {
-    if (ev.data?.[0] !== HANDLE_SCOPE) {
+    if (ev.data?.[0] !== REQUEST_MARK) {
       return;
     }
-
     const [, id, cmd, ...args] = ev.data as Request;
     const [cmdName, transferrable] = typeof cmd === 'string' ? [cmd, []] : [cmd.name, cmd.transferrable];
     const func = api[cmdName];
     func(...args)
       .then((result: any) => {
-        adapter.emit(ctx, [HANDLE_SCOPE, id, false, result], transferrable)
+        adapter.emit(ctx, [RESPONSE_MARK, id, false, result], transferrable)
       })
-      .catch((e: any) => adapter.emit(ctx, [HANDLE_SCOPE, id, true, e?.stack ?? e?.toString() ]));
+      .catch((e: any) => adapter.emit(ctx, [RESPONSE_MARK, id, true, e?.stack ?? e?.toString() ]));
   });
 };
 
@@ -49,7 +50,7 @@ export const createWrap = (adapter: Adapter) => <Impl extends RemoteImpl>(
   ctx: Worker | NodeWorker
 ): WorkerApi<Impl> => {
   adapter.listen(ctx, (ev: MessageEvent) => {
-    if (ev.data?.[0] !== HANDLE_SCOPE) {
+    if (ev.data?.[0] !== RESPONSE_MARK) {
       return;
     }
     const [, id, error, result] = ev.data as Response;
@@ -76,7 +77,7 @@ export const createWrap = (adapter: Adapter) => <Impl extends RemoteImpl>(
         });
         const [cmdName, transferrable] = typeof cmd === 'string' ? [cmd, []] : [cmd.name, cmd.transferrable];
         const req = [
-          HANDLE_SCOPE,
+          REQUEST_MARK,
           id,
           cmdName,
           ...args,

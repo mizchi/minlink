@@ -14,6 +14,15 @@ export default [
     plugins: defaultPlugins,
   },
   {
+    input: "src/browser.dev.ts",
+    output: {
+      dir: "dist",
+      format: "es",
+    },
+    plugins: [typescript(), filesize()],
+  },
+
+  {
     input: "src/browser.legacy.ts",
     output: {
       dir: "dist",
