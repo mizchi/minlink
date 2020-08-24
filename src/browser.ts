@@ -1,8 +1,8 @@
 import { createExpose, createWrap, Adapter } from "./shared";
 
 const adapter: Adapter<Worker> = {
-  emit(ctx, arg) {
-    ctx.postMessage(arg);
+  emit(ctx, arg, transferrable) {
+    ctx.postMessage(arg, (transferrable as any) ?? []);
   },
   listen(ctx, handler) {
     ctx.addEventListener("message", handler);

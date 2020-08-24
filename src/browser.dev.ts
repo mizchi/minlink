@@ -1,3 +1,3 @@
 // just exports
-// build this file for legacy browser
+// build this file for development
 export * from "./browser";
