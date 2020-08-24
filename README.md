@@ -24,7 +24,7 @@ Minlink takes WebWorker as expose/wrap. Bundle them with webpack or rollup.
 
 ```ts
 // browser worker.js
-import { expose } from "minilink/browser.mjs";
+import { expose } from "minilink/dist/browser.mjs";
 const impl = {
   async foo(n; number) {
     return n + 1;
