@@ -96,11 +96,6 @@ const ret = await api.exec({ name: "foo", transferrable: [buf] }, buf); // pass
 
 TBD
 
-## TODO
-
-- playwright browser test
-- Service Worker
-
 ## Inspired by ...
 
 - https://github.com/GoogleChromeLabs/comlink
