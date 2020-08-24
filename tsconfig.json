@@ -1,8 +1,11 @@
 {
   "include": ["src"],
   "compilerOptions": {
+    "importHelpers": true,
     "rootDir": "src",
-    // "outDir": "lib",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationDir": "dist",
     "target": "es2019",
     "module": "esnext",
     "strict": true,

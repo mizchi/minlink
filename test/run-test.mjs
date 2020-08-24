@@ -2,7 +2,7 @@ import path from "path";
 import assert from "assert";
 import { Worker } from "worker_threads";
 import { wrap } from "../dist/node.mjs";
-import { test, run } from "./helpers.mjs";
+import { test, run } from "./test-helpers.mjs";
 
 function createTestWorker() {
   const url = new URL(import.meta.url);
@@ -10,19 +10,19 @@ function createTestWorker() {
   return new Worker(path.join(dirname, "test-worker.mjs"));
 }
 
-test("call foo", async () => {
+test("call add", async () => {
   const worker = createTestWorker();
   const api = wrap(worker);
-  const res = await api.exec("foo", {});
-  assert.deepStrictEqual(res, { foo: 1 });
+  const res = await api.exec("add", 1, 1);
+  assert.deepStrictEqual(res, 2);
   await worker.terminate();
 });
 
-test("call bar", async () => {
+test("call {name: 'add'}", async () => {
   const worker = createTestWorker();
   const api = wrap(worker);
-  const res = await api.exec("foo", {});
-  assert.deepStrictEqual(res, { foo: 1 });
+  const res = await api.exec({ name: "add" }, 1, 1);
+  assert.deepStrictEqual(res, 2);
   await worker.terminate();
 });
 

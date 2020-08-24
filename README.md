@@ -1,32 +1,44 @@
 # minilink
 
-WIP
+Minimum(> 1kb) and isomorphic worker wrapper with comlink like rpc.
 
-minimum and isomorphic worker comlink like rpc for node's Worker and browser's WebWorker.
+```bash
+npm install minilink --save
+# or
+yarn add minilink
+```
+
+## Why?
+
+- WebWorker(DedicateWorker) and node's Worker(`threads`) have similar api but not same one. This library wraps them to same rpc.
+- `minilink` is inspired by `comlink` but to keep simple and small core, minilink does not use ES2015 Proxy(or its polyfill). Instead of proxy, `minilink` provides typescript's type utils.
 
 ## Requirements
 
 - Node 14+
-- Modern Browser + IE11(WIP)
+- Modern Browser + IE11(WIP: Not tested yet)
 
 ## Browser WebWorker
 
-Minlink takes WebWorker as expose/wrap.
+Minlink takes WebWorker as expose/wrap. Bundle them with webpack or rollup.
 
 ```ts
 // browser worker.js
-import { expose } from "minilink/browser";
-expose(self, {
-  async foo(args) {
-    return args.v + 1;
+import { expose } from "minilink/browser.mjs";
+const impl = {
+  async foo(n; number) {
+    return n + 1;
   },
-});
+};
+expose(self, impl);
 
 // browesr main.js
-import { wrap } from "minilink/browser";
-const api = wrap(new Worker("/myworker.js"));
-const ret = await api.exec("foo", { v: 1 });
+// import { wrap } from "minilink/dist/browser.legacy.js"; // for ie11. UMD build.
+import { wrap } from "minilink/dist/browser.mjs";
+const api = wrap(new Worker("./worker.js"));
+const ret = await api.exec("foo", 1);
 console.log(ret); // => 2
+await api.terminate();
 ```
 
 ## Node Worker
@@ -35,43 +47,59 @@ Minlink takes `worker_threads/Worker` as expose/wrap.
 
 ```ts
 // main.mjs
-
+import { wrap } from "comlink/dist/node.mjs";
 import { Worker } from "worker_threads";
-import path from "path";
-import { wrap } from "comlink/node.mjs";
-
-const url = new URL(import.meta.url);
-const dirname = path.dirname(url.pathname);
-
-const worker = new Worker(path.join(dirname, "worker.mjs"));
+const worker = new Worker("./worker.mjs");
 const api = wrap(worker);
-
-const x = await api.exec("foo", {});
-console.log("response", x);
-})();
+const res = await api.exec("foo", 1);
+console.log("response", res);
 
 // worker.mjs
-
+import { expose } from "minilink/dist/node.mjs";
 import { parentPort } from "worker_threads";
-import { expose } from "minilink/node.mjs";
-
 expose(parentPort, {
-  async foo(args) {
-    return {
-      ...args,
-      foo: 1,
-    };
+  async foo(n) {
+    return n + 1;
   },
 });
 ```
 
+## Advanced: TypeScript utilities
+
+```ts
+// browser/worker.ts
+import { expose } from "minilink/dist/browser.mjs";
+const impl = {
+  async foo(n; number) {
+    return n + 1;
+  },
+};
+export type RemoteImpl = typeof impl;
+expose(self, impl);
+
+// browesr/main.ts
+import type { RemoteImpl } from "./worker.ts"; // Typescript 3.9+ Type only import
+import { wrap } from "minilink/dist/browser.mjs";
+const api = wrap<RemoteImpl>(new Worker("/worker.js")); // take RemoteImpl as `wrap(...)`'s type argument.
+const ret = await api.exec("foo", 1); // pass
+const ret = await api.exec("foo", "invalid arg"); // type error
+```
+
+## Advanced: Transferrable
+
+```ts
+const buf = new Uint8Array([1]);
+const ret = await api.exec({ name: "foo", transferrable: [buf] }, buf); // pass
+```
+
 ## Advanced: Call client expose from worker.
+
+TBD
 
 ## TODO
 
 - playwright browser test
-- Publish
-- TypeScript transform or register support
+- Service Worker
 
 ## LICENSE
 

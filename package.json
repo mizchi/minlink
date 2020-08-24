@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
   "scripts": {
-    "test": "node test/run-test.mjs"
+    "build": "rollup -c rollup.config.js && mv dist/node.js dist/node.mjs",
+    "test": "node test/run-test.mjs",
+    "demo:browser": "parcel demo/index.html",
+    "demo:node": "node demo-node/entry.mjs"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^5.0.2",
@@ -13,13 +18,17 @@
     "jest": "^26.4.2",
     "parcel": "^1.12.4",
     "rollup": "^2.26.5",
+    "rollup-plugin-filesize": "^9.0.2",
+    "rollup-plugin-terser": "^7.0.0",
     "ts-jest": "^26.2.0",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.2"
   },
   "dependencies": {
     "tslib": "^2.0.1",
-    "type-fest": "^0.16.0",
-    "web-worker": "^1.0.0"
-  }
+    "type-fest": "^0.16.0"
+  },
+  "files": [
+    "dist"
+  ]
 }

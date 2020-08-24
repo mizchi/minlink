@@ -14,6 +14,6 @@ const adapter: Adapter<NodeWorker> = {
   },
 };
 
-export type { WorkerApi } from "./shared";
+export type { WorkerApi, RemoteCall } from "./shared";
 export const expose = createExpose(adapter);
 export const wrap = createWrap(adapter);

@@ -1,20 +1,41 @@
 import typescript from "@rollup/plugin-typescript";
+import { terser } from "rollup-plugin-terser";
+import filesize from "rollup-plugin-filesize";
+
+const defaultPlugins = [typescript(), terser(), filesize()];
 
 export default [
   {
     input: "src/browser.ts",
     output: {
-      file: "dist/browser.js",
+      dir: "dist",
       format: "es",
     },
-    plugins: [typescript()],
+    plugins: defaultPlugins,
+  },
+  {
+    input: "src/browser.legacy.ts",
+    output: {
+      dir: "dist",
+      name: "Minilink",
+      format: "umd",
+    },
+    plugins: [typescript({ target: "es5" }), terser(), filesize()],
+  },
+  {
+    input: "src/memory.ts",
+    output: {
+      dir: "dist",
+      format: "es",
+    },
+    plugins: defaultPlugins,
   },
   {
     input: "src/node.ts",
     output: {
-      file: "dist/node.mjs",
+      dir: "dist",
       format: "es",
     },
-    plugins: [typescript()],
+    plugins: defaultPlugins,
   },
 ];

@@ -10,6 +10,7 @@ export async function run() {
       testQueue.map(async (q) => {
         const [name, func] = q;
         const start = Date.now();
+        // console.log("Start...", name);
         await func().then(() => {
           const ms = Date.now() - start;
           console.log(`[PASS]`, name, `:${ms}ms`);
