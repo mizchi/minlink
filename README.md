@@ -1,6 +1,6 @@
 # minlink
 
-Minimum(> 1kb) and isomorphic worker wrapper with comlink like rpc.
+Minimum(~ 1kb) and isomorphic worker wrapper with comlink like rpc.
 
 ```bash
 npm install minlink --save
