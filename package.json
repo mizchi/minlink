@@ -7,7 +7,9 @@
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c rollup.config.js && mv dist/node.js dist/node.mjs",
-    "test": "node test/run-test.mjs",
+    "test": "run-p test:*",
+    "test:node": "node test/run-test.mjs",
+    "test:e2e": "parcel build test/fixtures/demo/index.html --out-dir test/built && node test/e2e.mjs",
     "demo:browser": "parcel demo/index.html",
     "demo:node": "node demo-node/entry.mjs"
   },
@@ -15,8 +17,12 @@
     "@rollup/plugin-typescript": "^5.0.2",
     "@types/jest": "^26.0.10",
     "@types/node": "^14.6.0",
+    "delay": "^4.4.0",
+    "express": "^4.17.1",
     "jest": "^26.4.2",
+    "npm-run-all": "^4.1.5",
     "parcel": "^1.12.4",
+    "playwright": "^1.3.0",
     "rollup": "^2.26.5",
     "rollup-plugin-filesize": "^9.0.2",
     "rollup-plugin-terser": "^7.0.0",
