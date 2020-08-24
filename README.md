@@ -1,17 +1,17 @@
-# minilink
+# minlink
 
 Minimum(> 1kb) and isomorphic worker wrapper with comlink like rpc.
 
 ```bash
-npm install minilink --save
+npm install minlink --save
 # or
-yarn add minilink
+yarn add minlink
 ```
 
 ## Why?
 
 - WebWorker(DedicateWorker) and node's Worker(`threads`) have similar api but not same one. This library wraps them to same rpc.
-- `minilink` is inspired by `comlink` but to keep simple and small core, minilink does not use ES2015 Proxy(or its polyfill). Instead of proxy, `minilink` provides typescript's type utils.
+- `minlink` is inspired by `comlink` but to keep simple and small core, minlink does not use ES2015 Proxy(or its polyfill). Instead of proxy, `minlink` provides typescript's type utils.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ Minlink takes WebWorker as expose/wrap. Bundle them with webpack or rollup.
 
 ```ts
 // browser worker.js
-import { expose } from "minilink/dist/browser.mjs";
+import { expose } from "minlink/dist/browser.mjs";
 const impl = {
   async foo(n; number) {
     return n + 1;
@@ -33,8 +33,8 @@ const impl = {
 expose(self, impl);
 
 // browesr main.js
-// import { wrap } from "minilink/dist/browser.legacy.js"; // for ie11. UMD build.
-import { wrap } from "minilink/dist/browser.mjs";
+// import { wrap } from "minlink/dist/browser.legacy.js"; // for ie11. UMD build.
+import { wrap } from "minlink/dist/browser.mjs";
 const api = wrap(new Worker("./worker.js"));
 const ret = await api.exec("foo", 1);
 console.log(ret); // => 2
@@ -55,7 +55,7 @@ const res = await api.exec("foo", 1);
 console.log("response", res);
 
 // worker.mjs
-import { expose } from "minilink/dist/node.mjs";
+import { expose } from "minlink/dist/node.mjs";
 import { parentPort } from "worker_threads";
 expose(parentPort, {
   async foo(n) {
@@ -68,7 +68,7 @@ expose(parentPort, {
 
 ```ts
 // browser/worker.ts
-import { expose } from "minilink/dist/browser.mjs";
+import { expose } from "minlink/dist/browser.mjs";
 const impl = {
   async foo(n; number) {
     return n + 1;
@@ -79,7 +79,7 @@ expose(self, impl);
 
 // browesr/main.ts
 import type { RemoteImpl } from "./worker.ts"; // Typescript 3.9+ Type only import
-import { wrap } from "minilink/dist/browser.mjs";
+import { wrap } from "minlink/dist/browser.mjs";
 const api = wrap<RemoteImpl>(new Worker("/worker.js")); // take RemoteImpl as `wrap(...)`'s type argument.
 const ret = await api.exec("foo", 1); // pass
 const ret = await api.exec("foo", "invalid arg"); // type error

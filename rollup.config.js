@@ -17,7 +17,7 @@ export default [
     input: "src/browser.legacy.ts",
     output: {
       dir: "dist",
-      name: "Minilink",
+      name: "minlink",
       format: "umd",
     },
     plugins: [typescript({ target: "es5" }), terser(), filesize()],
