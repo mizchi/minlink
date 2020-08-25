@@ -89,7 +89,7 @@ const ret = await api.exec("foo", "invalid arg"); // type error
 
 ```ts
 const buf = new Uint8Array([1]);
-const ret = await api.exec({ name: "foo", transferrable: [buf] }, buf); // pass
+const ret = await api.exec(["foo", [buf]], buf); // pass
 ```
 
 ## Advanced: Call client expose from worker.
@@ -100,6 +100,11 @@ TBD
 
 - https://github.com/GoogleChromeLabs/comlink
 - https://github.com/developit/web-worker
+
+## ChangeLog
+
+- v2: transferrable uses `['foo', [buf]]` from `{cmd: 'foo', transferrable: [buf]}`
+- v1: release
 
 ## LICENSE
 

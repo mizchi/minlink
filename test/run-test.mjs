@@ -10,7 +10,7 @@ function createTestWorker() {
   return new Worker(path.join(dirname, "test-worker.mjs"));
 }
 
-test("call add", async () => {
+test("call with add", async () => {
   const worker = createTestWorker();
   const api = wrap(worker);
   const res = await api.exec("add", 1, 1);
@@ -18,10 +18,10 @@ test("call add", async () => {
   await worker.terminate();
 });
 
-test("call {name: 'add'}", async () => {
+test("call with ['add']", async () => {
   const worker = createTestWorker();
   const api = wrap(worker);
-  const res = await api.exec({ name: "add" }, 1, 1);
+  const res = await api.exec(["add"], 1, 1);
   assert.deepStrictEqual(res, 2);
   await worker.terminate();
 });

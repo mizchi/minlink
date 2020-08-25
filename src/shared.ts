@@ -13,10 +13,10 @@ type Transferrable = JsonValue | ArrayBuffer | ImageBitmap | OffscreenCanvas | M
 
 export type Expose<I extends RemoteImpl> = (impl: I) => RemoteCall<I>;
 export type WorkerApi<Impl extends RemoteImpl> = RemoteCall<Impl>;
-export type Cmd = string | { name: string, transferrable?: Transferrable[] }
+export type Cmd = string | [name: string, transferrable?: Transferrable[]];
 
-export const REQUEST_MARK = "m$s";
-export const RESPONSE_MARK = "m$r";
+const REQUEST_MARK = "m$s";
+const RESPONSE_MARK = "m$r";
 
 type Request = [mark: typeof REQUEST_MARK, id: number, cmd: Cmd, ...args: Transferrable[]]
 type Response = [mark: typeof RESPONSE_MARK, id: number, error: boolean, result: Transferrable ]
@@ -33,7 +33,7 @@ export const createExpose = (adapter: Adapter) => (ctx: any, api: any) => {
       return;
     }
     const [, id, cmd, ...args] = ev.data as Request;
-    const [cmdName, transferrable] = typeof cmd === 'string' ? [cmd, []] : [cmd.name, cmd.transferrable];
+    const [cmdName, transferrable] = typeof cmd === 'string' ? [cmd, []] : cmd;
     const func = api[cmdName];
     func(...args)
       .then((result: any) => {
@@ -43,7 +43,7 @@ export const createExpose = (adapter: Adapter) => (ctx: any, api: any) => {
   });
 };
 
-const _sentIdMap = new Map();
+const _sentIdMap: Map<number, [resolve: (ret: any) => void, reject:(err: any) => void]> = new Map();
 let _cnt = 0;
 const genId = () => _cnt++;
 export const createWrap = (adapter: Adapter) => <Impl extends RemoteImpl>(
@@ -55,15 +55,9 @@ export const createWrap = (adapter: Adapter) => <Impl extends RemoteImpl>(
     }
     const [, id, error, result] = ev.data as Response;
     const obj = _sentIdMap.get(id);
-    if (obj == null) {
-      return;
-    }
+    if (obj == null) return;
     _sentIdMap.delete(id);
-    if (error) {
-      obj.reject(result);
-    } else {
-      obj.resolve(result);
-    }
+    obj[error ? 1 : 0](result);
   });
   return {
     terminate: () => adapter.terminate(ctx),
@@ -71,11 +65,11 @@ export const createWrap = (adapter: Adapter) => <Impl extends RemoteImpl>(
     exec(cmd: Cmd, ...args: Transferrable<any>) {
       const id = genId();
       return new Promise((resolve, reject) => {
-        _sentIdMap.set(id, {
+        _sentIdMap.set(id, [
           resolve,
           reject,
-        });
-        const [cmdName, transferrable] = typeof cmd === 'string' ? [cmd, []] : [cmd.name, cmd.transferrable];
+        ]);
+        const [cmdName, transferrable] = typeof cmd === 'string' ? [cmd, []] : cmd;
         const req = [
           REQUEST_MARK,
           id,
