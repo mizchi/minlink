@@ -1,16 +1,17 @@
 import { createExpose, createWrap, Adapter } from "./shared";
-
-const adapter: Adapter<Worker> = {
-  emit(ctx, arg, transferrable) {
+const adapter: Adapter<Worker> = [
+  // emit
+  (ctx, arg, transferrable) => {
     ctx.postMessage(arg, (transferrable as any) ?? []);
   },
-  listen(ctx, handler) {
+  // listen
+  (ctx, handler) => {
     ctx.addEventListener("message", handler);
   },
-  async terminate(ctx) {
-    ctx.terminate();
-  },
-};
+  // terminate
+  // @ts-ignore
+  (ctx) => ctx.terminate(),
+];
 
 export type { WorkerApi, RemoteCall } from "./shared";
 export const expose = createExpose(adapter);

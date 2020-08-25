@@ -21,14 +21,14 @@ const RESPONSE_MARK = "m$r";
 type Request = [mark: typeof REQUEST_MARK, id: number, cmd: Cmd, ...args: Transferrable[]]
 type Response = [mark: typeof RESPONSE_MARK, id: number, error: boolean, result: Transferrable ]
 
-export type Adapter<Ctx = any> = {
-  emit(ctx: Ctx, data: Response | Request, transferrable?: Array<Transferrable>): void;
-  listen(ctx: Ctx, fn: any): void;
-  terminate(ctx: Ctx): Promise<void>;
-};
+export type Adapter<Ctx = any> = [
+  emit: (ctx: Ctx, data: Response | Request, transferrable?: Array<Transferrable>) => void,
+  listen: (ctx: Ctx, fn: any) => void,
+  terminate: (ctx: Ctx) => Promise<void>,
+];
 
-export const createExpose = (adapter: Adapter) => (ctx: any, api: any) => {
-  adapter.listen(ctx, (ev: MessageEvent) => {
+export const createExpose = ([emit, listen, terminate]: Adapter) => (ctx: any, api: any) => {
+  listen(ctx, (ev: MessageEvent) => {
     if (ev.data?.[0] !== REQUEST_MARK) {
       return;
     }
@@ -37,19 +37,19 @@ export const createExpose = (adapter: Adapter) => (ctx: any, api: any) => {
     const func = api[cmdName];
     func(...args)
       .then((result: any) => {
-        adapter.emit(ctx, [RESPONSE_MARK, id, false, result], transferrable)
+        emit(ctx, [RESPONSE_MARK, id, false, result], transferrable)
       })
-      .catch((e: any) => adapter.emit(ctx, [RESPONSE_MARK, id, true, e?.stack ?? e?.toString() ]));
+      .catch((e: any) => emit(ctx, [RESPONSE_MARK, id, true, e?.stack ?? e?.toString() ]));
   });
 };
 
 const _sentIdMap: Map<number, [resolve: (ret: any) => void, reject:(err: any) => void]> = new Map();
 let _cnt = 0;
 const genId = () => _cnt++;
-export const createWrap = (adapter: Adapter) => <Impl extends RemoteImpl>(
+export const createWrap = ([emit, listen, terminate]: Adapter) => <Impl extends RemoteImpl>(
   ctx: Worker | NodeWorker
 ): WorkerApi<Impl> => {
-  adapter.listen(ctx, (ev: MessageEvent) => {
+  listen(ctx, (ev: MessageEvent) => {
     if (ev.data?.[0] !== RESPONSE_MARK) {
       return;
     }
@@ -60,7 +60,7 @@ export const createWrap = (adapter: Adapter) => <Impl extends RemoteImpl>(
     obj[error ? 1 : 0](result);
   });
   return {
-    terminate: () => adapter.terminate(ctx),
+    terminate: () => terminate(ctx),
     // @ts-ignore
     exec(cmd: Cmd, ...args: Transferrable<any>) {
       const id = genId();
@@ -76,7 +76,7 @@ export const createWrap = (adapter: Adapter) => <Impl extends RemoteImpl>(
           cmdName,
           ...args,
         ] as Request
-        adapter.emit(
+        emit(
           ctx,
           req,
           transferrable
